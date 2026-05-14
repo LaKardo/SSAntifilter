@@ -25,26 +25,28 @@ RUN addgroup -g 1000 ssagroup && \
     adduser -u 1000 -G ssagroup -D -s /bin/sh ssauser
 
 # Установка системных зависимостей от root
-RUN apk --no-cache add ca-certificates tzdata && \
+RUN apk --no-cache add ca-certificates tzdata su-exec && \
     rm -rf /var/cache/apk/*
 
 # Создание рабочей директории и установка прав доступа
-RUN mkdir -p /app && \
-    chown ssauser:ssagroup /app
-
-# Переключение на не-root пользователя
-USER ssauser
+RUN mkdir -p /app /app/rawdata /app/rawdata/geosite /app/lists && \
+    chown -R ssauser:ssagroup /app
 
 WORKDIR /app
 
 ENV TZ=Europe/Moscow
+ENV PORT=8080
 
 # Копирование файлов с правильными правами доступа
 COPY --from=builder --chown=ssauser:ssagroup /app/ssantifilter /app/
 COPY --from=builder --chown=ssauser:ssagroup /app/geo /app/geo
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-# Установка прав на выполнение (от имени ssauser)
+# Установка прав на выполнение
 RUN chmod +x /app/geo/domain-list-community && \
     chmod +x /app/geo/geoip
 
+EXPOSE 8080
+
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["./ssantifilter"]
