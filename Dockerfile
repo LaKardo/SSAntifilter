@@ -40,11 +40,12 @@ ENV PORT=8080
 # Копирование файлов с правильными правами доступа
 COPY --from=builder --chown=ssauser:ssagroup /app/ssantifilter /app/
 COPY --from=builder --chown=ssauser:ssagroup /app/geo /app/geo
-COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 # Установка прав на выполнение
 RUN chmod +x /app/geo/domain-list-community && \
-    chmod +x /app/geo/geoip
+    chmod +x /app/geo/geoip && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 8080
 
